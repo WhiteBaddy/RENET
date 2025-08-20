@@ -182,11 +182,18 @@ struct RtmpChunk
         // 如果数据量不足 ret 应该不会小于0，这里的判断应该是多余的
         // if (ret <= 0)
         //     return 0;
+
+        /*
         // 需要重新校准payloadSize
         if (bHeader.fmt == FmtType::Full || bHeader.fmt == FmtType::Medium)
         {
             payloadSize = std::min(payloadSize, header.rtmpMsgHeader.length);
         }
+        */
+
+        // 重新校准payloadSize
+        payloadSize = std::min(payloadSize, header.rtmpMsgHeader.length);
+
         // 再次判断是否数据不足
         if (len < offset + ret + payloadSize)
             return 0;

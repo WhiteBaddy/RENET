@@ -27,7 +27,8 @@ public:
     // 是否是主播
     virtual bool IsPublisher() const { return false; }
     // 是否正在播放
-    virtual bool IsPlaying() const { return false; }
+    virtual bool IsAudioPlaying() const { return false; }
+    virtual bool IsVideoPlaying() const { return false; }
     // 是否正在直播
     virtual bool IsPublishing() const { return false; }
     // 获取唯一标识Id

@@ -13,7 +13,7 @@ RtmpConnection::RtmpConnection()
     : peer_width_(5 * 1000 * 1000), state_(State::Handshake),
       acknowledgement_size_(5 * 1000 * 1000),
       max_chunk_size_(128), stream_id_(0),
-      is_playing_(false), is_publishing_(false),
+      is_audio_playing_(false), is_video_playing_(false), is_publishing_(false),
       has_key_frame_(false) {}
 RtmpConnection::~RtmpConnection() = default;
 
@@ -42,7 +42,8 @@ void RtmpConnection::Init(const RtmpServerSPtr &server, const EventLoopSPtr &eve
 
 bool RtmpConnection::IsPlayer() const { return state_ == State::Playing; }
 bool RtmpConnection::IsPublisher() const { return state_ == State::Publishing; }
-bool RtmpConnection::IsPlaying() const { return is_playing_; }
+bool RtmpConnection::IsAudioPlaying() const { return is_audio_playing_; }
+bool RtmpConnection::IsVideoPlaying() const { return is_video_playing_; }
 bool RtmpConnection::IsPublishing() const { return is_publishing_; }
 uint32_t RtmpConnection::GetId() const { return GetSocket(); }
 
@@ -297,6 +298,7 @@ bool RtmpConnection::HandleNotify(RtmpMessage &rtmpMsg)
             {
                 stream_metadata_ = std::dynamic_pointer_cast<AmfEcmaArray>(array[2]);
             }
+            // fmt::print("stream_metadata_ : {}\n", stream_metadata_->to_string());
         }
         session->SendMetaData(stream_metadata_);
     }
@@ -310,14 +312,17 @@ bool RtmpConnection::HandleAudio(RtmpMessage &rtmpMsg)
     {
         return false;
     }
+    // static int cnt = 0;
+    // if (++cnt % 1 == 0)
+    // {
+    //     fmt::print("cnt:{}, HandleAudio, rtmpMsg.body size: {}, timestamp: {}\n", cnt, rtmpMsg.body->size(), rtmpMsg.header.timestamp);
+    //     Debug::ShowHex(rtmpMsg.body->data(), rtmpMsg.body->size());
+    // }
 
-    auto payload = rtmpMsg.body->to_vector();
-    uint32_t length = rtmpMsg.header.length;
-    RtmpAudioCodecId sound_fmt = static_cast<RtmpAudioCodecId>((payload[0] >> 4) & 0x0F);
-    // uint8_t code_id = payload[0] & 0x0F;
-    RtmpAudioFrameType type = RtmpAudioFrameType::RawData;
-
-    if (sound_fmt == RtmpAudioCodecId::AAC && payload[1] == 0)
+    auto bytes = rtmpMsg.body->at(0);
+    auto sound_fmt = static_cast<RtmpAudioCodecId>((bytes >> 4) & 0x0F);
+    auto type = RtmpAudioFrameType::RawData;
+    if (sound_fmt == RtmpAudioCodecId::AAC && rtmpMsg.body->at(1) == 0)
     {
         aac_sequence_header_ = rtmpMsg.body;
         session->SetAacSequenceHeader(aac_sequence_header_);
@@ -334,14 +339,11 @@ bool RtmpConnection::HandleVideo(RtmpMessage &rtmpMsg)
     {
         return false;
     }
-    // fmt::print("=========推流端视频时间戳: {}========\n", rtmpMsg.header.timestamp);
-    // RtmpVideoFrameType type = RtmpVideoFrameType::InterFrame;
-    auto payload = rtmpMsg.body->to_vector();
-    uint32_t length = rtmpMsg.header.length;
-    RtmpVideoFrameType frame_type = static_cast<RtmpVideoFrameType>((payload[0] >> 4) & 0x0F);
-    RtmpVideoCodecId code_id = static_cast<RtmpVideoCodecId>(payload[0] & 0x0F);
 
-    if (code_id == RtmpVideoCodecId::H264 && payload[1] == 0)
+    auto bytes = rtmpMsg.body->at(0);
+    auto frame_type = static_cast<RtmpVideoFrameType>((bytes >> 4) & 0x0F);
+    auto code_id = static_cast<RtmpVideoCodecId>(bytes & 0x0F);
+    if (code_id == RtmpVideoCodecId::H264 && rtmpMsg.body->at(1) == 0)
     {
         avc_sequence_header_ = rtmpMsg.body;
         session->SetAvcSequenceHeader(avc_sequence_header_);
@@ -590,13 +592,14 @@ bool RtmpConnection::HandleDeleteStream(uint32_t transaction_id, uint32_t delete
             {
                 server->NotifyEvent("publish.stop", stream_path_);
             }
-            else if (is_playing_)
+            else if (is_audio_playing_ || is_video_playing_)
             {
                 server->NotifyEvent("play.stop", stream_path_);
             }
         }
 
-        is_playing_ = false;
+        is_audio_playing_ = false;
+        is_video_playing_ = false;
         is_publishing_ = false;
         has_key_frame_ = false;
     }
@@ -743,9 +746,10 @@ bool RtmpConnection::SendMetaData(const AmfEcmaArray::SPtr &metaData)
 bool RtmpConnection::SendVideoData(RtmpVideoFrameType type, uint64_t timestamp, DataPayload::SPtr &payload)
 {
     if (IsShutdown() ||
+        payload == nullptr ||
         payload->size() == 0)
         return false;
-    is_playing_ = true;
+    is_video_playing_ = true;
     if (type == RtmpVideoFrameType::SequenceHeader)
     {
         avc_sequence_header_ = payload;
@@ -782,18 +786,28 @@ bool RtmpConnection::SendVideoData(RtmpVideoFrameType type, uint64_t timestamp, 
 
     msg->header.typeId = RtmpMessage::Type::Video;
     SendMsg(msg);
-    // fmt::print("=========拉流端视频时间戳: {}========\n", msg->header.timestamp);
+    fmt::print("=========拉流端视频时间戳: {}========\n", msg->header.timestamp);
+    if (type == RtmpVideoFrameType::SequenceHeader)
+    {
+        // fmt::print("发送的是视频序列头\n");
+    }
+    else
+    {
+        // fmt::print("发送的是视频帧\n");
+    }
     return true;
 }
 bool RtmpConnection::SendAudioData(RtmpAudioFrameType type, uint64_t timestamp, DataPayload::SPtr &payload)
 {
     if (IsShutdown() ||
+        payload == nullptr ||
         payload->size() == 0)
         return false;
-    is_playing_ = true;
+    is_audio_playing_ = true;
     if (type == RtmpAudioFrameType::SequenceHeader)
     {
         aac_sequence_header_ = payload;
+        // fmt::print("保存音频序列头\n");
     }
 
     // 音频帧不用等关键帧，直接发送
@@ -805,5 +819,14 @@ bool RtmpConnection::SendAudioData(RtmpAudioFrameType type, uint64_t timestamp, 
 
     msg->header.typeId = RtmpMessage::Type::Audio;
     SendMsg(msg);
+    fmt::print("=========拉流端音频时间戳: {}========\n", msg->header.timestamp);
+    if (type == RtmpAudioFrameType::SequenceHeader)
+    {
+        // fmt::print("发送的是音频序列头\n");
+    }
+    else
+    {
+        // fmt::print("发送的是音频帧\n");
+    }
     return true;
 }

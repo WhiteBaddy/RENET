@@ -4,5 +4,5 @@
 class Debug
 {
 public:
-    static void ShowHex(uint8_t *in, size_t len, int rowSize = 16);
+    static void ShowHex(const uint8_t *in, size_t len, int rowSize = 16);
 };

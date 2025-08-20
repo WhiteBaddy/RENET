@@ -114,15 +114,17 @@ void Session::SendVideoData(RtmpVideoFrameType type, uint64_t timestamp, DataPay
     if (rtmpsinks_.size() > 1)
     {
         auto size = rtmpsinks_.size();
-        // fmt::print("当前有{}个客户端，应该转发数据了\n", size);
+        fmt::print("当前有{}个客户端，应该转发视频数据了\n", size);
     }
+    else
+        return;
     for (auto it = rtmpsinks_.begin(); it != rtmpsinks_.end();)
     {
         if (auto conn = it->second.lock(); conn != nullptr)
         {
             if (conn->IsPlayer())
             {
-                if (!conn->IsPlaying())
+                if (!conn->IsVideoPlaying())
                 {
                     conn->SendVideoData(RtmpVideoFrameType::SequenceHeader, timestamp, avc_sequence_header_);
                 }
@@ -139,15 +141,22 @@ void Session::SendVideoData(RtmpVideoFrameType type, uint64_t timestamp, DataPay
 void Session::SendAudioData(RtmpAudioFrameType type, uint64_t timestamp, DataPayload::SPtr &data)
 {
     std::lock_guard<std::mutex> lck(mtx_);
+    if (rtmpsinks_.size() > 1)
+    {
+        auto size = rtmpsinks_.size();
+        fmt::print("当前有{}个客户端，应该转发音频数据了\n", size);
+    }
+    else
+        return;
     for (auto it = rtmpsinks_.begin(); it != rtmpsinks_.end();)
     {
         if (auto conn = it->second.lock(); conn != nullptr)
         {
             if (conn->IsPlayer())
             {
-                if (!conn->IsPlaying())
+                if (!conn->IsAudioPlaying())
                 {
-                    conn->SendAudioData(RtmpAudioFrameType::SequenceHeader, timestamp, avc_sequence_header_);
+                    conn->SendAudioData(RtmpAudioFrameType::SequenceHeader, timestamp, aac_sequence_header_);
                 }
                 conn->SendAudioData(type, timestamp, data);
             }

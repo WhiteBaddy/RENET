@@ -12,6 +12,7 @@
 #include <Tools/UintCodec.h>
 #include <Tools/Debug.h>
 #include <DataPayload/DataPayload.h>
+#include <fmt/core.h>
 
 class ReadBuffer
 {
@@ -62,6 +63,7 @@ public:
         if (bytes_read > 0)
         {
             // Debug::ShowHex(BeginWrite(), bytes_read);
+            // fmt::print("ReadBuffer::Read, bytes_read: {}\n", bytes_read);
             m_writerIndex += bytes_read;
         }
         return bytes_read;

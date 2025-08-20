@@ -1,7 +1,7 @@
 #include "Tools/Debug.h"
 #include <fmt/core.h>
 
-void Debug::ShowHex(uint8_t *in, size_t len, int rowSize)
+void Debug::ShowHex(const uint8_t *in, size_t len, int rowSize)
 {
     for (int offset = 0; offset < len; offset += rowSize)
     {

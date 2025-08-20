@@ -63,7 +63,7 @@ protected:
         }
         void Build()
         {
-            timestamp = Time::rtmp_timestamp_ms();
+            timestamp = Time::GetTimestamp_ms();
             zero = 0;
             std::random_device rd;
             for (int i = 0; i < RANDOM_SIZE; ++i)

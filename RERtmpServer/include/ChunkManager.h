@@ -4,6 +4,7 @@
 #include <functional>
 #include <queue>
 #include <unordered_map>
+#include <fmt/core.h>
 
 class ChunkDecodeStream
 {
@@ -147,6 +148,8 @@ public: // 解码功能
         }
         auto &lastStream = chunk_decode_streams_[basicHeader.csid]; // 获取对应的流
         auto &lastHeader = lastStream->last_header_;                // 上一个块的头部
+
+        /*
         // 当前块的预期长度
         // fmt=0/1时, 在函数内部才能知道包的具体长度，传入in_chunk_size_, 在函数内部再次校准
         // fmt=2时，需要先通过上一个msg头获取到包长度，再与in_chunk_size_进行比较后取较小的值
@@ -161,6 +164,18 @@ public: // 解码功能
         {
             chunkPayloadSize = std::min(lastStream->exected_length_, in_chunk_size_);
         }
+        */
+
+        // 策略修改：
+        // 考虑到有些实现中如果当前msg与上一msg头部相同，也会使用fmt=3的方式发送
+        // 所以这里传递的值的计算较为复杂
+        // 统一进入内部作二次矫正
+
+        // 只有fmt=3且上一个msg头部的预期长度大于0时，才表示上一chunk的延续
+        auto chunkPayloadSize =
+            (basicHeader.fmt == RtmpChunk::FmtType::Minimal && lastStream->exected_length_ > 0)
+                ? std::min(lastStream->exected_length_, in_chunk_size_)
+                : in_chunk_size_;
 
         ret = chunk.Decode(basicHeader, lastHeader, chunkPayloadSize, in + offset, len - offset);
         if (ret <= 0)
@@ -174,6 +189,13 @@ public: // 解码功能
         std::lock_guard<std::mutex> lck(mtx_decode_msgs_);
         auto msg = std::move(decode_messages_.front());
         decode_messages_.pop();
+        static int cnt = 0;
+        fmt::print("GetMsg, cnt: {}, size: {}\n", ++cnt, msg.body->size());
+        if (cnt == 86)
+        {
+            auto str = msg.body->to_string();
+            fmt::print("GetMsg, cnt: {}, body: {}\n", cnt, str);
+        }
         return msg;
     }
     bool HasMsg()

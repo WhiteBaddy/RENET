@@ -46,7 +46,8 @@ private:
 public:
     bool IsPlayer() const override;
     bool IsPublisher() const override;
-    bool IsPlaying() const override;
+    bool IsAudioPlaying() const override;
+    bool IsVideoPlaying() const override;
     bool IsPublishing() const override;
     uint32_t GetId() const override;
 
@@ -103,8 +104,9 @@ private:
     AmfObject::SPtr connect_metadata_;   // 连接元数据
     AmfEcmaArray::SPtr stream_metadata_; // 推流元数据
 
-    bool is_playing_;    // 拉流者使用，是否正在拉流
-    bool is_publishing_; // 推流者使用，是否正在推流
+    bool is_audio_playing_; // 拉流者使用，是否已经开始拉音频
+    bool is_video_playing_; // 拉流者使用，是否已经开始拉视频
+    bool is_publishing_;    // 推流者使用，是否正在推流
 
     std::string app_;
     std::string stream_name_;
