@@ -152,7 +152,7 @@ bool RtmpConnection::HandleMessage(RtmpMessage &rtmpMsg)
     case RtmpMessage::Type::SetChunkSize:
     {
         int offset = 0;
-        rtmp_message_manager_->SetInChunkSize(UintCodec::DecodeU32(rtmpMsg.body->data(), rtmpMsg.body->size(), offset));
+        rtmp_message_manager_->SetInChunkSize(NumberCodec::DecodeU32(rtmpMsg.body->data(), rtmpMsg.body->size(), offset));
         break;
     }
     case RtmpMessage::Type::UserControl:
@@ -522,8 +522,8 @@ bool RtmpConnection::HandlePlay(uint32_t transaction_id)
     msg->header.typeId = RtmpMessage::Type::UserControl;
     msg->header.streamId = 0;
     std::vector<uint8_t> data;
-    UintCodec::EncodeU16LE(data, 0);
-    UintCodec::EncodeU32LE(data, stream_id_);
+    NumberCodec::EncodeU16LE(data, 0);
+    NumberCodec::EncodeU32LE(data, stream_id_);
     msg->body = DataPayload::Create(data);
     SendMsg(msg);
 
@@ -652,21 +652,21 @@ bool RtmpConnection::SendCtrlMsg(RtmpMessage::Type tpid, const std::vector<uint8
 void RtmpConnection::SetPeerBandWidth()
 {
     std::vector<uint8_t> data;
-    UintCodec::EncodeU32(data, peer_width_);
-    UintCodec::EncodeU8(data, 2);
+    NumberCodec::EncodeU32(data, peer_width_);
+    NumberCodec::EncodeU8(data, 2);
     SendCtrlMsg(RtmpMessage::Type::PeerBandwidth, data);
 }
 void RtmpConnection::SendAcknowledgement()
 {
     std::vector<uint8_t> data;
-    UintCodec::EncodeU32(data, acknowledgement_size_);
+    NumberCodec::EncodeU32(data, acknowledgement_size_);
     SendCtrlMsg(RtmpMessage::Type::WindowAckSize, data);
 }
 void RtmpConnection::SetOutChunkSize(uint32_t size)
 {
     rtmp_message_manager_->SetOutChunkSize(size);
     std::vector<uint8_t> data;
-    UintCodec::EncodeU32(data, size);
+    NumberCodec::EncodeU32(data, size);
     SendCtrlMsg(RtmpMessage::Type::SetChunkSize, data);
 }
 

@@ -21,7 +21,7 @@ public:
     }
     TcpServer() = default;
     virtual ~TcpServer() { Close(); }
-    void Init()
+    virtual void Init()
     {
         m_loopPool = EventLoopThreadPool::Create(SchedulerThreadSize);
         m_acceptor = Acceptor::Create(m_loopPool);

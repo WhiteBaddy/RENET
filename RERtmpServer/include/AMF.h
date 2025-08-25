@@ -7,7 +7,7 @@
 #include <map>
 #include <cstring>
 #include <fmt/core.h>
-#include <Tools/UintCodec.h>
+#include <Tools/NumberCodec.h>
 
 class AmfValue
 {
@@ -75,7 +75,7 @@ public:
     int Decode(const uint8_t *in, size_t len) override
     {
         int offset = 0;
-        uint64_t bits = UintCodec::DecodeU64(in, len, offset);
+        uint64_t bits = NumberCodec::DecodeU64(in, len, offset);
         std::memcpy(&value, &bits, sizeof(double));
         return offset;
     }
@@ -84,7 +84,7 @@ public:
         std::vector<uint8_t> buffer = {static_cast<uint8_t>(type)};
         uint64_t bits = 0;
         std::memcpy(&bits, &value, sizeof(double));
-        UintCodec::EncodeU64(buffer, bits);
+        NumberCodec::EncodeU64(buffer, bits);
         return buffer;
     }
 };
@@ -163,7 +163,7 @@ public:
         int offset = 0;
         if constexpr (isEcma)
         {
-            /* auto size = */ UintCodec::DecodeU32(in, len, offset);
+            /* auto size = */ NumberCodec::DecodeU32(in, len, offset);
         }
         while (!IsObjectEndMarker(in, len, offset))
         {
@@ -179,7 +179,7 @@ public:
         std::vector<uint8_t> buffer = {static_cast<uint8_t>(type)};
         if constexpr (isEcma)
         {
-            UintCodec::EncodeU32(buffer, value.size());
+            NumberCodec::EncodeU32(buffer, value.size());
         }
         // key-value
         for (auto &[key, val] : value)

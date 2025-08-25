@@ -9,7 +9,7 @@
 #include <sys/socket.h>
 
 #include <cerrno>
-#include <Tools/UintCodec.h>
+#include <Tools/NumberCodec.h>
 #include <DataPayload/DataPayload.h>
 
 class WriteBuffer

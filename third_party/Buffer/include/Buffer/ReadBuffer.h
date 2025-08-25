@@ -9,7 +9,7 @@
 #include <sys/socket.h>
 
 #include <cerrno>
-#include <Tools/UintCodec.h>
+#include <Tools/NumberCodec.h>
 #include <Tools/Debug.h>
 #include <DataPayload/DataPayload.h>
 #include <fmt/core.h>

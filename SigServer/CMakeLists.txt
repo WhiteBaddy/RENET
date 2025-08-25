@@ -1,4 +1,4 @@
-set(EXECNAME RERtmpServer)
+set(EXECNAME SigServer)
 
 project(${EXECNAME})
 

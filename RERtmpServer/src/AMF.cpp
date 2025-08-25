@@ -70,7 +70,7 @@ void AmfValue::EncodeValue(std::vector<uint8_t> &buf, const AmfValue::SPtr &valu
 
 std::string AmfValue::DecodeString(const uint8_t *in, size_t len, int &offset)
 {
-    uint16_t strLen = UintCodec::DecodeU16(in, len, offset);
+    uint16_t strLen = NumberCodec::DecodeU16(in, len, offset);
     std::string str(in + offset, in + offset + strLen);
     offset += strLen;
     return str;
@@ -78,7 +78,7 @@ std::string AmfValue::DecodeString(const uint8_t *in, size_t len, int &offset)
 
 void AmfValue::EncodeString(std::vector<uint8_t> &buf, const std::string &str)
 {
-    UintCodec::EncodeU16(buf, str.size());
+    NumberCodec::EncodeU16(buf, str.size());
     buf.insert(buf.end(), str.begin(), str.end());
 }
 

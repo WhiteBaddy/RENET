@@ -20,7 +20,7 @@ public:
 
 protected:
     TcpConnection() : m_isShutdown(false) {}
-    void Init(SOCKET sockfd, const EventLoopSPtr &loop)
+    virtual void Init(SOCKET sockfd, const EventLoopSPtr &loop)
     {
         SocketUtil::SetNonBlock(sockfd);
         SocketUtil::KeepAlive(sockfd);

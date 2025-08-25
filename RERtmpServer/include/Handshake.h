@@ -5,7 +5,7 @@
 #include <random>
 #include <fmt/core.h>
 #include <Tools/Time.h>
-#include <Tools/UintCodec.h>
+#include <Tools/NumberCodec.h>
 
 constexpr uint8_t RTMP_VERSION = 0x03; // RTMP version 3
 
@@ -35,12 +35,12 @@ protected:
         {
             int offset = 0;
             if (len >= VERSION_SIZE)
-                major = UintCodec::DecodeU8(in, len, offset);
+                major = NumberCodec::DecodeU8(in, len, offset);
             return offset;
         }
         void Encode(std::vector<uint8_t> &buf)
         {
-            UintCodec::EncodeU8(buf, major);
+            NumberCodec::EncodeU8(buf, major);
         }
     };
     struct HandshakeData
@@ -76,8 +76,8 @@ protected:
             int offset = 0;
             if (len >= HANDSHAKEDATE_SIZE)
             {
-                timestamp = UintCodec::DecodeU32(in, len, offset);
-                zero = UintCodec::DecodeU32(in, len, offset);
+                timestamp = NumberCodec::DecodeU32(in, len, offset);
+                zero = NumberCodec::DecodeU32(in, len, offset);
                 memcpy(random, in + offset, RANDOM_SIZE);
                 offset += RANDOM_SIZE;
             }
@@ -85,8 +85,8 @@ protected:
         }
         void Encode(std::vector<uint8_t> &buf)
         {
-            UintCodec::EncodeU32(buf, timestamp);
-            UintCodec::EncodeU32(buf, zero);
+            NumberCodec::EncodeU32(buf, timestamp);
+            NumberCodec::EncodeU32(buf, zero);
             buf.insert(buf.end(), random, random + RANDOM_SIZE);
         }
     };

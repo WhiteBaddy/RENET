@@ -1,7 +1,7 @@
 #pragma once
 #include "Message.h"
 #include <DataPayload/DataPayload.h>
-#include <Tools/UintCodec.h>
+#include <Tools/NumberCodec.h>
 #include <string>
 
 struct RtmpChunk
@@ -98,24 +98,24 @@ struct RtmpChunk
 
             if (basicHeader.fmt < FmtType::Minimal)
             {
-                UintCodec::EncodeU24(data, offset, std::min(rtmpMsgHeader.timestamp, (uint32_t)0xFFFFFF));
+                NumberCodec::EncodeU24(data, offset, std::min(rtmpMsgHeader.timestamp, (uint32_t)0xFFFFFF));
                 offset += 3;
             }
             if (basicHeader.fmt < FmtType::Small)
             {
-                UintCodec::EncodeU24(data, offset, rtmpMsgHeader.length);
+                NumberCodec::EncodeU24(data, offset, rtmpMsgHeader.length);
                 offset += 3;
                 data[offset++] = static_cast<uint8_t>(rtmpMsgHeader.typeId);
             }
             if (basicHeader.fmt < FmtType::Medium)
             {
-                UintCodec::EncodeU32LE(data, offset, rtmpMsgHeader.streamId);
+                NumberCodec::EncodeU32LE(data, offset, rtmpMsgHeader.streamId);
                 offset += 4;
             }
             //-------------拓展时间戳----------------
             if (rtmpMsgHeader.timestamp >= 0xFFFFFF) // 扩展时间戳
             {
-                UintCodec::EncodeU32(data, offset, rtmpMsgHeader.timestamp);
+                NumberCodec::EncodeU32(data, offset, rtmpMsgHeader.timestamp);
                 offset += 4;
             }
             return data; // 返回序列化后的头
@@ -134,15 +134,15 @@ struct RtmpChunk
             {
                 if (basicHeader.fmt == FmtType::Minimal)
                     break; // fmt为3时, 没有任何信息
-                rtmpMsgHeader.timestamp = UintCodec::DecodeU24(data, len, offset);
+                rtmpMsgHeader.timestamp = NumberCodec::DecodeU24(data, len, offset);
                 if (basicHeader.fmt == FmtType::Small)
                     break; // fmt为2时,仅包含相对时间戳
-                rtmpMsgHeader.length = UintCodec::DecodeU24(data, len, offset);
-                rtmpMsgHeader.typeId = static_cast<RtmpMessage::Type>(UintCodec::DecodeU8(data, len, offset));
+                rtmpMsgHeader.length = NumberCodec::DecodeU24(data, len, offset);
+                rtmpMsgHeader.typeId = static_cast<RtmpMessage::Type>(NumberCodec::DecodeU8(data, len, offset));
                 if (basicHeader.fmt == FmtType::Medium)
                     break; // fmt为1时, 包含相对时间戳、msg长度、typeId
                 // streamId小端存储
-                rtmpMsgHeader.streamId = UintCodec::DecodeU32LE(data, len, offset);
+                rtmpMsgHeader.streamId = NumberCodec::DecodeU32LE(data, len, offset);
                 break; // fmt为0时, 包含绝对时间戳、msg长度、typeId、streamId
             }
 
@@ -151,7 +151,7 @@ struct RtmpChunk
             {
                 if (len < offset + 4)
                     return 0; // 数据长度不够
-                rtmpMsgHeader.timestamp = UintCodec::DecodeU32(data, len, offset);
+                rtmpMsgHeader.timestamp = NumberCodec::DecodeU32(data, len, offset);
             }
             return offset;
         }

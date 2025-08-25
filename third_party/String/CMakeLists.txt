@@ -16,14 +16,14 @@ if (THIRD_PARTY_LIB_TYPE STREQUAL "INTERFACE")
 else()
     file(
         GLOB
-        TOOLS_SOURCES
+        SOURCES
         CONFIGURE_DEPENDS
         ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
     )
     add_library(
         ${LIBNAME}
         ${THIRD_PARTY_LIB_TYPE}
-        ${TOOLS_SOURCES}
+        ${SOURCES}
     )
     target_include_directories(
         ${LIBNAME} PUBLIC

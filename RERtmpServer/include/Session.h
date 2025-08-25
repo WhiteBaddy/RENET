@@ -5,7 +5,7 @@
 #include <vector>
 #include "AMF.h"
 #include "Sink.h"
-#include <Tools/UintCodec.h>
+#include <Tools/NumberCodec.h>
 #include "Rtmp.h"
 
 class RtmpConnection;

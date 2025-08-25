@@ -1,21 +1,20 @@
-project(RNet)
+set(LIBNAME RNet_lib)
+set(EXECNAME RNet)
+
+project(${EXECNAME})
 
 # 创建可执行程序
-add_executable(RNet
+add_executable(${EXECNAME}
     src/main.cpp
 )
 
-# target_include_directories(RNet PUBLIC
-#     ${CMAKE_CURRENT_SOURCE_DIR}/include
-# )
-
-add_library(RNet_lib INTERFACE)
+add_library(${LIBNAME} INTERFACE)
 # 添加本项目头文件路径（可选）
-target_include_directories(RNet_lib INTERFACE
+target_include_directories(${LIBNAME} INTERFACE
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-target_link_libraries(RNet PRIVATE
+target_link_libraries(${EXECNAME} PRIVATE
     third_party_lib
     RNet_lib
 )

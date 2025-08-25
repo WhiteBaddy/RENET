@@ -28,7 +28,7 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/third_party)
 add_subdirectory(${PROJECT_SOURCE_DIR}/RNet)
 # add_subdirectory(${PROJECT_SOURCE_DIR}/RtmpServer)
 add_subdirectory(${PROJECT_SOURCE_DIR}/RERtmpServer)
-#add_subdirectory(${PROJECT_SOURCE_DIR}/SigServer)
+add_subdirectory(${PROJECT_SOURCE_DIR}/SigServer)
 #add_subdirectory(${PROJECT_SOURCE_DIR}/LoadBanceServer)
 #add_subdirectory(${PROJECT_SOURCE_DIR}/LoginServer)
 
